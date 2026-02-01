@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Log - {{ script }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Log em tempo real: <code>{{ script }}</code></h3>
+  <div id="log" style="background-color: #111; color: #0f0; padding: 1rem; border-radius: 5px; height: 400px; overflow-y: scroll; font-family: monospace; font-size: 0.9rem; border: 1px solid #333;"></div>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Voltar</a>
+</div>
+
+<script>
+  const logContainer = document.getElementById('log');
+  const eventSource = new EventSource("{{ url_for('stream_log', script=script) }}");
+
+  eventSource.onmessage = function(event) {
+    const newLine = document.createElement("div");
+    newLine.textContent = event.data;
+    logContainer.appendChild(newLine);
+    logContainer.scrollTop = logContainer.scrollHeight;
+  };
+
+  eventSource.onerror = function() {
+    const errorLine = document.createElement("div");
+    errorLine.textContent = "[ERRO] Conexão com o servidor encerrada.";
+    errorLine.style.color = "red";
+    logContainer.appendChild(errorLine);
+    eventSource.close();
+  };
+</script>
+{% endblock %}
